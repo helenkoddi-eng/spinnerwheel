@@ -1,0 +1,608 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>Колесо Фортуны | Просто для учителя</title>
+    <style>
+        /* =========================================
+           ОБЩИЕ СТИЛИ РЕДАКТОРА
+           ========================================= */
+        :root {
+            --bg: #f4f7f6;
+            --text: #333;
+            --primary: #8a2be2;
+            --panel: #fff;
+            --border: #ddd;
+        }
+
+        body, html {
+            margin: 0; padding: 0; width: 100vw; height: 100vh;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: transparent; overflow: hidden; /* Прозрачный фон для виджета */
+        }
+
+        #editor-container {
+            display: none; background-color: var(--bg); color: var(--text);
+            width: 100%; height: 100%; padding: 15px; box-sizing: border-box;
+            overflow-y: auto; align-items: center; flex-direction: column;
+        }
+        
+        /* Ограничиваем размер редактора для слайдов Genially (1200x675) */
+        .panel-box {
+            max-width: 1100px; width: 100%; background: var(--panel);
+            padding: 25px 35px; border-radius: 20px; box-shadow: 0 10px 40px rgba(0,0,0,0.1);
+            box-sizing: border-box; margin-bottom: 20px;
+        }
+        h1 { text-align: center; margin: 0 0 20px; color: var(--primary); font-size: 26px; }
+        
+        .layout { display: flex; gap: 30px; flex-wrap: wrap; }
+        .controls { flex: 1.2; min-width: 350px; display: flex; flex-direction: column; gap: 15px; }
+        .preview { flex: 1; min-width: 350px; display: flex; flex-direction: column; align-items: center; }
+
+        .list-box {
+            border: 1px solid var(--border); border-radius: 12px;
+            max-height: 200px; overflow-y: auto; padding: 10px; background: #fafafa;
+        }
+        .list-item {
+            display: flex; align-items: center; gap: 10px; background: #fff;
+            padding: 8px 12px; border-radius: 8px; margin-bottom: 8px;
+            border: 1px solid #eee; font-size: 13px;
+        }
+        .list-item img { width: 30px; height: 30px; border-radius: 4px; object-fit: contain; background:#f4f7f6;}
+        .list-item .remove { margin-left: auto; color: #ff4757; cursor: pointer; font-weight: bold; font-size: 16px;}
+
+        .input-group { display: flex; flex-direction: column; gap: 8px; background: #f9f9f9; padding: 12px; border-radius: 10px; border: 1px solid #eee; }
+        input[type="text"], input[type="url"] { flex: 1; padding: 10px; border-radius: 8px; border: 1px solid var(--border); outline: none; font-size: 14px; }
+        .btn-small { padding: 8px 15px; background: var(--primary); color: #fff; border: none; border-radius: 8px; cursor: pointer; font-size: 13px; font-weight: 600; transition: 0.2s;}
+        .btn-small:hover { filter: brightness(1.1); }
+        .btn-link { background: #20bf6b; margin-top: 5px; padding: 10px;}
+
+        input[type="color"] { width: 100%; height: 40px; border: none; border-radius: 8px; cursor: pointer; padding: 0;}
+        input[type="color"]::-webkit-color-swatch-wrapper { padding: 0; }
+        input[type="color"]::-webkit-color-swatch { border: 1px solid var(--border); border-radius: 8px; }
+
+        .checkbox-group { display: flex; align-items: center; gap: 10px; cursor: pointer; background: #f9f9f9; padding: 10px; border-radius: 8px; border: 1px solid var(--border); margin-top:5px; flex: 1;}
+        .checkbox-group input { width: 18px; height: 18px; cursor: pointer;}
+        
+        button.action-btn { width: 100%; background: var(--primary); color: white; border: none; padding: 14px; border-radius: 8px; font-size: 15px; font-weight: 600; cursor: pointer; transition: 0.3s; display: flex; justify-content: center; align-items: center; gap: 10px; }
+        button.action-btn:hover { filter: brightness(1.1); }
+
+        .preview-box {
+            width: 100%; max-width: 450px; aspect-ratio: 1/1; /* Колесо круглое, идеальные пропорции 1:1 */
+            border: 2px dashed var(--border); border-radius: 20px;
+            background: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20"><rect width="10" height="10" fill="%23e5e5e5"/><rect x="10" y="10" width="10" height="10" fill="%23e5e5e5"/></svg>');
+            position: relative; overflow: hidden; resize: both; display: flex; justify-content: center; align-items: center;
+        }
+        .preview-box iframe { width: 100%; height: 100%; border: none; }
+
+        footer { margin-top: 15px; padding-top: 15px; border-top: 1px solid var(--border); text-align: center; font-size: 13px; color: #777; width: 100%; max-width: 1100px; }
+        .social-links { display: flex; gap: 20px; justify-content: center; margin-top: 10px; }
+        .social-links a { color: #777; text-decoration: none; display: flex; align-items: center; gap: 5px; font-weight: 600; transition: 0.2s;}
+        .social-links a:hover { color: var(--primary); }
+        .social-links svg { width: 20px; height: 20px; fill: currentColor; }
+
+        /* =========================================
+           СТИЛИ ВИДЖЕТА (КОЛЕСО ФОРТУНЫ)
+           ========================================= */
+        #widget-container {
+            display: none; width: 100%; height: 100%;
+            justify-content: center; align-items: center; 
+            padding: 2vmin; box-sizing: border-box;
+            position: relative; overflow: hidden;
+        }
+
+        .wheel-wrapper {
+            position: relative; width: 90vmin; height: 90vmin; max-width: 100%; max-height: 100%;
+            aspect-ratio: 1/1; border-radius: 50%;
+            display: flex; justify-content: center; align-items: center;
+            filter: drop-shadow(0 2cqmin 4cqmin rgba(0,0,0,0.3));
+        }
+
+        /* Ободок колеса с 3D эффектом */
+        .wheel-border {
+            position: absolute; width: 100%; height: 100%; border-radius: 50%;
+            border: 3vmin solid var(--widget-color, #8a2be2);
+            box-sizing: border-box; z-index: 5; pointer-events: none;
+            box-shadow: inset 0 1vmin 2vmin rgba(0,0,0,0.3), 0 1vmin 3vmin rgba(0,0,0,0.3);
+            transition: box-shadow 0.3s, border-color 0.3s;
+        }
+
+        /* Само вращающееся колесо (Canvas) */
+        #wheelCanvas {
+            width: 96%; height: 96%; border-radius: 50%;
+            background: #fff; cursor: pointer;
+            transition: transform 5s cubic-bezier(0.15, 0.85, 0.15, 1);
+            transform: rotate(0deg);
+        }
+
+        /* Указатель (стрелка) */
+        .pointer {
+            position: absolute; top: -1vmin; left: 50%; transform: translateX(-50%);
+            width: 8vmin; height: 10vmin; z-index: 10;
+            background: #fff;
+            clip-path: polygon(50% 100%, 0 0, 100% 0);
+            box-shadow: 0 1vmin 2vmin rgba(0,0,0,0.5); /* не сработает с clip-path, используем drop-shadow на родителе если нужно */
+            filter: drop-shadow(0 1vmin 1vmin rgba(0,0,0,0.3));
+        }
+        /* Внутренняя закраска указателя под цвет колеса */
+        .pointer::after {
+            content: ''; position: absolute; top: 1vmin; left: 1vmin; right: 1vmin; bottom: 2vmin;
+            background: var(--widget-color, #8a2be2);
+            clip-path: polygon(50% 100%, 0 0, 100% 0);
+            transition: background 0.3s;
+        }
+
+        /* Центральная кнопка (ось) */
+        .center-btn {
+            position: absolute; width: 18%; height: 18%; background: var(--widget-color, #8a2be2);
+            border-radius: 50%; z-index: 10; cursor: pointer;
+            border: 1vmin solid #fff; box-shadow: 0 1vmin 2vmin rgba(0,0,0,0.3);
+            display: flex; justify-content: center; align-items: center;
+            color: #fff; font-weight: 900; font-size: 3vmin; text-transform: uppercase;
+            text-shadow: 0 2px 4px rgba(0,0,0,0.3); transition: transform 0.1s, filter 0.3s;
+        }
+        .center-btn:hover { transform: scale(1.05); }
+        .center-btn:active { transform: scale(0.95); }
+
+        /* Всплывающее окно победителя */
+        .winner-modal {
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(255,255,255,0.2); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px);
+            display: flex; flex-direction: column; justify-content: center; align-items: center;
+            z-index: 50; opacity: 0; pointer-events: none; transition: opacity 0.4s;
+        }
+        .winner-modal.show { opacity: 1; pointer-events: all; }
+        
+        .winner-card {
+            background: #fff; border: 1vmin solid var(--widget-color, #8a2be2);
+            padding: 4vmin; border-radius: 3vmin; box-shadow: 0 4vmin 8vmin rgba(0,0,0,0.2);
+            display: flex; flex-direction: column; align-items: center; gap: 2vmin;
+            max-width: 80%; text-align: center; animation: popIn 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+        @keyframes popIn { 0% { transform: scale(0.5); opacity: 0; } 100% { transform: scale(1); opacity: 1; } }
+
+        .winner-card img { max-width: 40vmin; max-height: 40vmin; object-fit: contain; border-radius: 1vmin; }
+        .winner-card h2 { margin: 0; font-size: 5vmin; color: var(--widget-color, #8a2be2); }
+        .winner-card p { margin: 0; font-size: 4vmin; font-weight: 700; color: #333; word-wrap: break-word;}
+        .winner-btn {
+            margin-top: 2vmin; padding: 2vmin 4vmin; font-size: 3vmin; font-weight: bold;
+            background: var(--widget-color, #8a2be2); color: white; border: none; border-radius: 1.5vmin;
+            cursor: pointer; transition: 0.2s;
+        }
+        .winner-btn:hover { filter: brightness(1.1); }
+    </style>
+</head>
+<body>
+
+<!-- РЕДАКТОР -->
+<div id="editor-container">
+    <div class="panel-box">
+        <h1>Колесо Фортуны</h1>
+        <div class="layout">
+            <div class="controls">
+                
+                <div class="input-group">
+                    <label style="font-size: 13px; font-weight: 600; color: #555;">Текст сектора:</label>
+                    <input type="text" id="textInput" placeholder="Например: Скидка 10% или Имя">
+                    
+                    <label style="font-size: 13px; font-weight: 600; color: #555; margin-top: 5px;">Ссылка на картинку (необязательно):</label>
+                    <input type="url" id="linkInput" placeholder="https://example.com/photo.png">
+                    
+                    <div style="font-size:13px; color:#607188; background:#edeffd; border-radius:7px; padding:10px 13px; margin-top:5px; margin-bottom:4px; line-height:1.7;">
+                        <b>Инструкция:</b>
+                        Перейдите на сайт 
+                        <a href="https://creazilla.com/ru" target="_blank" style="color:#8a2be2; font-weight:bold; text-decoration:underline;">Creazilla</a> 
+                        &rarr; Найдите нужную картинку 
+                        (<span style="color:#333">справа выберите <b>Клипарт</b> для прозрачного фона</span>) 
+                        &rarr; Кликните по картинке правой кнопкой мыши &rarr; <b>Копировать URL картинки</b> &rarr; Вставьте ссылку сюда.
+                    </div>
+                    
+                    <button class="btn-small btn-link" onclick="addSector()">Добавить сектор на колесо</button>
+                </div>
+
+                <label style="margin-top:5px; display:block; font-weight: 600; font-size: 13px; color: #555;">Сектора колеса:</label>
+                <div id="sectorList" class="list-box"></div>
+
+                <div style="display:flex; gap:15px; align-items:flex-start; margin-top:10px; flex-wrap: wrap;">
+                    <div style="flex:1; min-width: 150px;">
+                        <label style="font-weight: 600; font-size: 13px; color: #555;">Цвет колеса:</label>
+                        <input type="color" id="colorPicker" value="#8a2be2" style="margin-top:5px;">
+                    </div>
+                    <div style="flex:2; display: flex; flex-direction: column; gap: 5px;">
+                        <label class="checkbox-group">
+                            <input type="checkbox" id="neonToggle" checked> 
+                            <span style="font-weight: 600; font-size: 14px;">Неоновое свечение</span>
+                        </label>
+                        <label class="checkbox-group">
+                            <input type="checkbox" id="eliminationToggle"> 
+                            <span style="font-weight: 600; font-size: 14px;">Режим на выбывание (удалять выпавшее)</span>
+                        </label>
+                    </div>
+                </div>
+
+                <button id="copyBtn" class="action-btn" style="margin-top: 10px;">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>
+                    Скопировать код iframe
+                </button>
+                <textarea id="codeOutput" style="width: 100%; height: 60px; padding: 10px; border-radius: 8px; border: 1px solid var(--border); font-family: monospace; font-size: 11px; background: #f4f7f6; resize: none; box-sizing: border-box; margin-top: 10px;" readonly></textarea>
+            </div>
+            
+            <div class="preview">
+                <label style="font-weight: 600; font-size: 13px; color: #555; margin-bottom: 10px;">Предпросмотр (интерактивный)</label>
+                <div class="preview-box">
+                    <iframe id="previewFrame" allowtransparency="true"></iframe>
+                </div>
+            </div>
+        </div>
+        <footer>
+            <div>Автор: <b>Кóденцева Алёна</b>, блог <i>Просто для учителя | Easy for busy</i></div>
+            <div class="social-links">
+                <a href="https://t.me/easyfrbusy" target="_blank" rel="noopener">
+                    <svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm4.64 6.8c-.15 1.58-.8 5.42-1.13 7.19-.14.75-.42 1-.68 1.03-.58.05-1.02-.38-1.58-.75-.88-.58-1.38-.94-2.23-1.5-.99-.65-.35-1.01.22-1.59.15-.15 2.71-2.48 2.76-2.69.01-.03.01-.14-.07-.19-.08-.05-.19-.02-.27 0-.12.03-1.96 1.25-5.54 3.67-.52.36-.99.53-1.41.52-.46-.01-1.35-.26-2.01-.48-.81-.27-1.46-.42-1.4-.88.03-.24.36-.49 1-.76 3.91-1.7 6.51-2.82 7.79-3.35 3.7-1.53 4.47-1.8 4.97-1.81.11 0 .35.03.5.15.12.1.16.23.17.33-.02.04-.02.13-.03.22z"/></svg>
+                    Telegram
+                </a>
+                <a href="https://vk.com/easyfrbusy" target="_blank" rel="noopener">
+                    <svg viewBox="0 0 24 24"><path d="M15.07 2H8.93C3.33 2 2 3.33 2 8.93v6.14C2 20.67 3.33 22 8.93 22h6.14c5.6 0 6.93-1.33 6.93-6.93V8.93C22 3.33 20.67 2 15.07 2zM17.46 16.35h-1.56c-.66 0-.84-.52-1.98-1.64-1.03-1-1.5-1.15-1.75-1.15-.34 0-.44.1-.44.6v1.44c0 .46-.14.75-1.4.75-2.06 0-4.32-1.25-5.91-3.52-2.39-3.41-3.03-5.99-3.03-6.42 0-.21.08-.42.5-.42h1.56c.4 0 .56.18.73.66 1.09 3.23 2.65 5.56 3.36 5.56.25 0 .36-.1.36-.61V8.67c-.05-1.09-.61-1.18-.61-1.56 0-.19.16-.4.44-.4h2.51c.36 0 .48.18.48.58v3.42c0 .48.22.61.36.61.25 0 .54-.14 1.15-.75 1.18-1.28 1.95-3.32 1.95-3.32.12-.34.34-.58.75-.58h1.56c.54 0 .66.28.56.66-.23 1.06-1.55 2.85-2.18 3.66-.41.52-.52.68 0 1.2 1.55 1.53 2.16 2.5 2.16 3.5 0 .38-.28.66-.99.66z"/></svg>
+                    ВКонтакте
+                </a>
+            </div>
+        </footer>
+    </div>
+</div>
+
+<!-- ВИДЖЕТ (КОЛЕСО) -->
+<div id="widget-container">
+    <div class="pointer"></div>
+    <div class="wheel-wrapper" id="wheelWrapper">
+        <div class="wheel-border" id="wheelBorder"></div>
+        <canvas id="wheelCanvas" width="800" height="800" onclick="spinWheel()"></canvas>
+        <div class="center-btn" onclick="spinWheel()">Крутить</div>
+    </div>
+    
+    <!-- Модальное окно победителя -->
+    <div class="winner-modal" id="winnerModal">
+        <div class="winner-card" id="winnerCard">
+            <h2>Победитель!</h2>
+            <div id="winnerContent"></div>
+            <button class="winner-btn" id="winnerBtn" onclick="closeWinner()">Продолжить</button>
+        </div>
+    </div>
+</div>
+
+<script>
+// ==========================================
+// ОБЩИЕ ФУНКЦИИ И ЗВУК (Синтезатор Web Audio API)
+// ==========================================
+const urlParams = new URLSearchParams(window.location.search);
+const configParam = urlParams.get('config');
+
+let audioCtx = null;
+function initAudio() { if(!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)(); }
+
+// Звук "трещотки" при вращении колеса
+function playTick() {
+    if(!audioCtx) return;
+    const osc = audioCtx.createOscillator();
+    const gain = audioCtx.createGain();
+    osc.type = 'triangle';
+    osc.frequency.setValueAtTime(400, audioCtx.currentTime);
+    osc.frequency.exponentialRampToValueAtTime(100, audioCtx.currentTime + 0.05);
+    
+    gain.gain.setValueAtTime(0.3, audioCtx.currentTime);
+    gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.05);
+    
+    osc.connect(gain); gain.connect(audioCtx.destination);
+    osc.start(); osc.stop(audioCtx.currentTime + 0.05);
+}
+
+// Звук "Дзинь!" при победе
+function playWinSound() {
+    if(!audioCtx) return;
+    const osc1 = audioCtx.createOscillator();
+    const osc2 = audioCtx.createOscillator();
+    const gain = audioCtx.createGain();
+    
+    osc1.type = 'sine'; osc2.type = 'triangle';
+    osc1.frequency.setValueAtTime(523.25, audioCtx.currentTime); // C5
+    osc2.frequency.setValueAtTime(659.25, audioCtx.currentTime); // E5
+    
+    gain.gain.setValueAtTime(0, audioCtx.currentTime);
+    gain.gain.linearRampToValueAtTime(0.3, audioCtx.currentTime + 0.1);
+    gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 1.5);
+    
+    osc1.connect(gain); osc2.connect(gain); gain.connect(audioCtx.destination);
+    osc1.start(); osc2.start();
+    osc1.stop(audioCtx.currentTime + 1.5); osc2.stop(audioCtx.currentTime + 1.5);
+}
+
+// ==========================================
+// ЛОГИКА ВИДЖЕТА (КОЛЕСО)
+// ==========================================
+if (configParam) {
+    document.getElementById('widget-container').style.display = 'flex';
+    
+    let config = { d: [], c: '#8a2be2', n: true, e: false };
+    try { config = JSON.parse(decodeURIComponent(atob(configParam))); } catch(err){}
+
+    const color = config.c;
+    const neon = config.n;
+    let items = config.d;
+    let isElimination = config.e;
+
+    // Применяем цвета
+    document.documentElement.style.setProperty('--widget-color', color);
+    if(neon) {
+        document.getElementById('wheelBorder').style.boxShadow = `0 0 4cqmin ${color}, inset 0 1vmin 2vmin rgba(0,0,0,0.3)`;
+    }
+
+    const canvas = document.getElementById('wheelCanvas');
+    const ctx = canvas.getContext('2d');
+    let currentRotation = 0;
+    let isSpinning = false;
+    let tickIntervals = [];
+
+    // Для контрастного текста на фоне выбранного цвета
+    function getContrastColor(hex) {
+        let r = parseInt(hex.substr(1,2),16), g = parseInt(hex.substr(3,2),16), b = parseInt(hex.substr(5,2),16);
+        let yiq = ((r*299)+(g*587)+(b*114))/1000;
+        return (yiq >= 128) ? '#333' : '#fff';
+    }
+    const contrastColor = getContrastColor(color);
+
+    // Функция отрисовки колеса
+    function drawWheel() {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        const center = canvas.width / 2;
+        const radius = center - 5; 
+        
+        if (items.length === 0) {
+            ctx.beginPath(); ctx.arc(center, center, radius, 0, Math.PI * 2);
+            ctx.fillStyle = '#eee'; ctx.fill();
+            ctx.fillStyle = '#999'; ctx.font = '30px Arial'; ctx.textAlign = 'center';
+            ctx.fillText('Добавьте сектора', center, center);
+            return;
+        }
+
+        const arc = Math.PI * 2 / items.length;
+
+        // Предзагрузка изображений для отрисовки (асинхронно)
+        let loadedImages = 0;
+        const imgElements = items.map(item => {
+            if(item.img) {
+                const img = new Image();
+                img.crossOrigin = "Anonymous"; // Важно для внешних ссылок
+                img.src = item.img;
+                img.onload = () => { loadedImages++; if(loadedImages === items.filter(i=>i.img).length) renderFrame(); };
+                img.onerror = () => { loadedImages++; if(loadedImages === items.filter(i=>i.img).length) renderFrame(); };
+                return img;
+            }
+            return null;
+        });
+
+        function renderFrame() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            for (let i = 0; i < items.length; i++) {
+                const angle = i * arc;
+                ctx.beginPath();
+                // Начинаем рисовать сверху (-Math.PI/2)
+                ctx.arc(center, center, radius, angle - Math.PI / 2, angle + arc - Math.PI / 2);
+                ctx.lineTo(center, center);
+                
+                // Чередование цветов (Белый и Выбранный цвет)
+                let isColored = (i % 2 !== 0);
+                // Если секторов нечетное количество, последний красим в слегка другой оттенок, чтобы не сливался с первым
+                if (items.length % 2 !== 0 && i === items.length - 1) {
+                    ctx.fillStyle = color;
+                    ctx.globalAlpha = 0.8;
+                } else {
+                    ctx.fillStyle = isColored ? color : '#ffffff';
+                    ctx.globalAlpha = 1.0;
+                }
+                ctx.fill();
+                ctx.globalAlpha = 1.0;
+                
+                // Разделительные линии
+                ctx.strokeStyle = '#eee'; ctx.lineWidth = 2; ctx.stroke();
+
+                // Отрисовка контента сектора
+                ctx.save();
+                ctx.translate(center, center);
+                // Поворачиваем на середину сектора
+                ctx.rotate(angle + arc / 2 - Math.PI / 2);
+                
+                const item = items[i];
+                const textColor = isColored ? contrastColor : '#333';
+                ctx.textAlign = 'right'; ctx.textBaseline = 'middle'; ctx.fillStyle = textColor;
+                
+                let drawRadius = radius * 0.85;
+
+                // Если есть картинка
+                if (imgElements[i] && imgElements[i].complete && imgElements[i].naturalWidth > 0) {
+                    const imgSize = item.text ? 100 : 150; // Если есть текст, картинка меньше
+                    // Рисуем картинку
+                    ctx.drawImage(imgElements[i], drawRadius - imgSize + 20, -imgSize/2, imgSize, imgSize);
+                    drawRadius -= (imgSize + 10);
+                }
+
+                // Если есть текст
+                if (item.text) {
+                    ctx.font = 'bold 32px Tahoma, sans-serif';
+                    // Обрезаем слишком длинный текст
+                    let t = item.text;
+                    if(t.length > 20) t = t.substring(0, 18) + '...';
+                    ctx.fillText(t, drawRadius, 0);
+                }
+
+                ctx.restore();
+            }
+        }
+        
+        // Запускаем рендер сразу (пока грузятся картинки, будут только тексты, затем перерисуется)
+        renderFrame();
+    }
+
+    // Вращение колеса
+    window.spinWheel = function() {
+        if (isSpinning || items.length === 0) return;
+        initAudio();
+        isSpinning = true;
+
+        // Звуковая симуляция трещотки (уменьшение частоты тиков)
+        let ticks = 0;
+        let delay = 30;
+        function simulateTick() {
+            if(!isSpinning) return;
+            playTick();
+            ticks++;
+            delay += ticks * 1.5; // Замедление
+            if (delay < 400) { setTimeout(simulateTick, delay); }
+        }
+        simulateTick();
+
+        // Математика вращения
+        const spinTime = 5; // секунды
+        const minSpins = 4;
+        const extraDegrees = Math.floor(Math.random() * 360);
+        const totalSpin = (360 * minSpins) + extraDegrees;
+        
+        currentRotation += totalSpin;
+        canvas.style.transform = `rotate(${currentRotation}deg)`;
+
+        // Определение победителя
+        setTimeout(() => {
+            isSpinning = false;
+            playWinSound();
+            
+            // Вычисляем, какой сектор оказался под стрелкой (стрелка на 0 градусах - вверху)
+            // Колесо крутится по часовой, значит сектор уходит против часовой
+            const arcDeg = 360 / items.length;
+            const normalizedRotation = currentRotation % 360;
+            // Учитываем, что сектора изначально сдвинуты на -90 градусов (-Math.PI/2) для старта сверху
+            // Плюс половина сектора для правильного попадания
+            let winningIndex = Math.floor((360 - normalizedRotation + (arcDeg / 2)) % 360 / arcDeg);
+            if (winningIndex === items.length) winningIndex = 0;
+            
+            showWinner(winningIndex);
+        }, spinTime * 1000);
+    };
+
+    let currentWinnerIdx = -1;
+
+    function showWinner(index) {
+        currentWinnerIdx = index;
+        const item = items[index];
+        const modal = document.getElementById('winnerModal');
+        const content = document.getElementById('winnerContent');
+        const btn = document.getElementById('winnerBtn');
+        
+        let html = '';
+        if(item.img) html += `<img src="${item.img}">`;
+        if(item.text) html += `<p>${item.text}</p>`;
+        
+        content.innerHTML = html;
+        btn.innerText = isElimination ? "Удалить и продолжить" : "Продолжить";
+        
+        modal.classList.add('show');
+    }
+
+    window.closeWinner = function() {
+        document.getElementById('winnerModal').classList.remove('show');
+        
+        if (isElimination && items.length > 1) {
+            items.splice(currentWinnerIdx, 1);
+            // Сбрасываем поворот, чтобы не было прыжков при перерисовке
+            currentRotation = 0;
+            canvas.style.transition = 'none';
+            canvas.style.transform = `rotate(0deg)`;
+            // Небольшой хак для применения 'none' перед возвратом 'transition'
+            void canvas.offsetWidth; 
+            canvas.style.transition = 'transform 5s cubic-bezier(0.15, 0.85, 0.15, 1)';
+            drawWheel();
+        } else if (isElimination && items.length === 1) {
+             document.getElementById('winnerContent').innerHTML = "<p>Больше нет элементов!</p>";
+             document.getElementById('winnerModal').classList.add('show');
+             document.getElementById('winnerBtn').style.display = 'none';
+        }
+    };
+
+    drawWheel();
+} 
+// ==========================================
+// ЛОГИКА РЕДАКТОРА
+// ==========================================
+else {
+    document.getElementById('editor-container').style.display = 'flex';
+    
+    let editorItems = [
+        {text: 'Скидка 10%', img: ''},
+        {text: 'Пусто', img: ''},
+        {text: 'Приз!', img: 'https://creazilla-store.fra1.digitaloceanspaces.com/cliparts/1484732/gift-clipart-md.png'}
+    ];
+
+    window.addSector = function() {
+        const textVal = document.getElementById('textInput').value.trim();
+        const linkVal = document.getElementById('linkInput').value.trim();
+        if(!textVal && !linkVal) return;
+        
+        editorItems.push({text: textVal, img: linkVal});
+        document.getElementById('textInput').value = '';
+        document.getElementById('linkInput').value = '';
+        renderList();
+    };
+
+    function renderList() {
+        const list = document.getElementById('sectorList');
+        list.innerHTML = '';
+        editorItems.forEach((item, i) => {
+            const div = document.createElement('div');
+            div.className = 'list-item';
+            
+            let preview = item.img ? `<img src="${item.img}">` : '';
+            let t = item.text ? item.text : '<i>Только картинка</i>';
+            
+            div.innerHTML = `${preview} <span>${t}</span>`;
+            
+            const rem = document.createElement('span');
+            rem.className = 'remove'; rem.innerText = '✕';
+            rem.onclick = () => { editorItems.splice(i, 1); renderList(); };
+            div.appendChild(rem);
+            list.appendChild(div);
+        });
+        updateCode();
+    }
+
+    function updateCode() {
+        const config = { 
+            d: editorItems, 
+            c: document.getElementById('colorPicker').value, 
+            n: document.getElementById('neonToggle').checked,
+            e: document.getElementById('eliminationToggle').checked
+        };
+        const hash = btoa(encodeURIComponent(JSON.stringify(config)));
+        const url = window.location.href.split('?')[0] + '?config=' + hash;
+        
+        document.getElementById('previewFrame').src = url;
+        // Генерируем iframe квадратной формы (идеально для колеса)
+        document.getElementById('codeOutput').value = `<iframe src="${url}" width="100%" height="800" style="border:none; aspect-ratio:1/1; max-width:800px; max-height:800px;" allowtransparency="true" allow="autoplay"></iframe>`;
+    }
+
+    document.getElementById('colorPicker').oninput = updateCode;
+    document.getElementById('neonToggle').onchange = updateCode;
+    document.getElementById('eliminationToggle').onchange = updateCode;
+    
+    document.getElementById('copyBtn').onclick = () => {
+        document.getElementById('codeOutput').select();
+        document.execCommand('copy');
+        const btn = document.getElementById('copyBtn');
+        const orig = btn.innerHTML;
+        btn.innerHTML = 'Скопировано!';
+        btn.style.background = '#27ae60';
+        setTimeout(() => { btn.innerHTML = orig; btn.style.background = 'var(--primary)'; }, 2000);
+    };
+
+    renderList();
+}
+</script>
+</body>
+</html>
