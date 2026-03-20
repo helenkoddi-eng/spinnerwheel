@@ -14,12 +14,13 @@
             --primary: #8a2be2;
             --panel: #fff;
             --border: #ddd;
+            --widget-color: #8a2be2; /* Базовый цвет рамки и интерфейса */
         }
 
         body, html {
             margin: 0; padding: 0; width: 100vw; height: 100vh;
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background-color: transparent; overflow: hidden; /* Прозрачный фон для виджета */
+            background-color: transparent; overflow: hidden;
         }
 
         #editor-container {
@@ -57,10 +58,6 @@
         .btn-small { padding: 8px 15px; background: var(--primary); color: #fff; border: none; border-radius: 8px; cursor: pointer; font-size: 13px; font-weight: 600; transition: 0.2s;}
         .btn-small:hover { filter: brightness(1.1); }
         .btn-link { background: #20bf6b; margin-top: 5px; padding: 10px;}
-
-        input[type="color"] { width: 100%; height: 40px; border: none; border-radius: 8px; cursor: pointer; padding: 0;}
-        input[type="color"]::-webkit-color-swatch-wrapper { padding: 0; }
-        input[type="color"]::-webkit-color-swatch { border: 1px solid var(--border); border-radius: 8px; }
 
         .checkbox-group { display: flex; align-items: center; gap: 10px; cursor: pointer; background: #f9f9f9; padding: 10px; border-radius: 8px; border: 1px solid var(--border); margin-top:5px; flex: 1;}
         .checkbox-group input { width: 18px; height: 18px; cursor: pointer;}
@@ -102,10 +99,10 @@
         /* Ободок колеса с 3D эффектом */
         .wheel-border {
             position: absolute; width: 100%; height: 100%; border-radius: 50%;
-            border: 3vmin solid var(--widget-color, #8a2be2);
+            border: 3vmin solid var(--widget-color);
             box-sizing: border-box; z-index: 5; pointer-events: none;
             box-shadow: inset 0 1vmin 2vmin rgba(0,0,0,0.3), 0 1vmin 3vmin rgba(0,0,0,0.3);
-            transition: box-shadow 0.3s, border-color 0.3s;
+            transition: box-shadow 0.3s;
         }
 
         /* Само вращающееся колесо (Canvas) */
@@ -119,28 +116,25 @@
         /* Указатель (стрелка) */
         .pointer {
             position: absolute; top: -1vmin; left: 50%; transform: translateX(-50%);
-            width: 8vmin; height: 10vmin; z-index: 10;
-            background: #fff;
+            width: 8vmin; height: 10vmin; z-index: 10; background: #fff;
             clip-path: polygon(50% 100%, 0 0, 100% 0);
-            box-shadow: 0 1vmin 2vmin rgba(0,0,0,0.5); /* не сработает с clip-path, используем drop-shadow на родителе если нужно */
             filter: drop-shadow(0 1vmin 1vmin rgba(0,0,0,0.3));
         }
-        /* Внутренняя закраска указателя под цвет колеса */
+        /* Внутренняя закраска указателя */
         .pointer::after {
             content: ''; position: absolute; top: 1vmin; left: 1vmin; right: 1vmin; bottom: 2vmin;
-            background: var(--widget-color, #8a2be2);
+            background: var(--widget-color);
             clip-path: polygon(50% 100%, 0 0, 100% 0);
-            transition: background 0.3s;
         }
 
         /* Центральная кнопка (ось) */
         .center-btn {
-            position: absolute; width: 18%; height: 18%; background: var(--widget-color, #8a2be2);
+            position: absolute; width: 18%; height: 18%; background: var(--widget-color);
             border-radius: 50%; z-index: 10; cursor: pointer;
             border: 1vmin solid #fff; box-shadow: 0 1vmin 2vmin rgba(0,0,0,0.3);
             display: flex; justify-content: center; align-items: center;
             color: #fff; font-weight: 900; font-size: 3vmin; text-transform: uppercase;
-            text-shadow: 0 2px 4px rgba(0,0,0,0.3); transition: transform 0.1s, filter 0.3s;
+            text-shadow: 0 2px 4px rgba(0,0,0,0.3); transition: transform 0.1s;
         }
         .center-btn:hover { transform: scale(1.05); }
         .center-btn:active { transform: scale(0.95); }
@@ -155,7 +149,7 @@
         .winner-modal.show { opacity: 1; pointer-events: all; }
         
         .winner-card {
-            background: #fff; border: 1vmin solid var(--widget-color, #8a2be2);
+            background: #fff; border: 1vmin solid var(--widget-color);
             padding: 4vmin; border-radius: 3vmin; box-shadow: 0 4vmin 8vmin rgba(0,0,0,0.2);
             display: flex; flex-direction: column; align-items: center; gap: 2vmin;
             max-width: 80%; text-align: center; animation: popIn 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
@@ -163,11 +157,10 @@
         @keyframes popIn { 0% { transform: scale(0.5); opacity: 0; } 100% { transform: scale(1); opacity: 1; } }
 
         .winner-card img { max-width: 40vmin; max-height: 40vmin; object-fit: contain; border-radius: 1vmin; }
-        .winner-card h2 { margin: 0; font-size: 5vmin; color: var(--widget-color, #8a2be2); }
-        .winner-card p { margin: 0; font-size: 4vmin; font-weight: 700; color: #333; word-wrap: break-word;}
+        .winner-card p { margin: 0; font-size: 5vmin; font-weight: 700; color: #333; word-wrap: break-word;}
         .winner-btn {
             margin-top: 2vmin; padding: 2vmin 4vmin; font-size: 3vmin; font-weight: bold;
-            background: var(--widget-color, #8a2be2); color: white; border: none; border-radius: 1.5vmin;
+            background: var(--widget-color); color: white; border: none; border-radius: 1.5vmin;
             cursor: pointer; transition: 0.2s;
         }
         .winner-btn:hover { filter: brightness(1.1); }
@@ -205,20 +198,14 @@
                 <div id="sectorList" class="list-box"></div>
 
                 <div style="display:flex; gap:15px; align-items:flex-start; margin-top:10px; flex-wrap: wrap;">
-                    <div style="flex:1; min-width: 150px;">
-                        <label style="font-weight: 600; font-size: 13px; color: #555;">Цвет колеса:</label>
-                        <input type="color" id="colorPicker" value="#8a2be2" style="margin-top:5px;">
-                    </div>
-                    <div style="flex:2; display: flex; flex-direction: column; gap: 5px;">
-                        <label class="checkbox-group">
-                            <input type="checkbox" id="neonToggle" checked> 
-                            <span style="font-weight: 600; font-size: 14px;">Неоновое свечение</span>
-                        </label>
-                        <label class="checkbox-group">
-                            <input type="checkbox" id="eliminationToggle"> 
-                            <span style="font-weight: 600; font-size: 14px;">Режим на выбывание (удалять выпавшее)</span>
-                        </label>
-                    </div>
+                    <label class="checkbox-group">
+                        <input type="checkbox" id="neonToggle" checked> 
+                        <span style="font-weight: 600; font-size: 14px;">Неоновое свечение рамки</span>
+                    </label>
+                    <label class="checkbox-group">
+                        <input type="checkbox" id="eliminationToggle"> 
+                        <span style="font-weight: 600; font-size: 14px;">Режим на выбывание (удалять выпавшее)</span>
+                    </label>
                 </div>
 
                 <button id="copyBtn" class="action-btn" style="margin-top: 10px;">
@@ -260,10 +247,9 @@
         <div class="center-btn" onclick="spinWheel()">Крутить</div>
     </div>
     
-    <!-- Модальное окно победителя -->
+    <!-- Модальное окно результата -->
     <div class="winner-modal" id="winnerModal">
         <div class="winner-card" id="winnerCard">
-            <h2>Победитель!</h2>
             <div id="winnerContent"></div>
             <button class="winner-btn" id="winnerBtn" onclick="closeWinner()">Продолжить</button>
         </div>
@@ -296,7 +282,7 @@ function playTick() {
     osc.start(); osc.stop(audioCtx.currentTime + 0.05);
 }
 
-// Звук "Дзинь!" при победе
+// Звук "Дзинь!" при остановке
 function playWinSound() {
     if(!audioCtx) return;
     const osc1 = audioCtx.createOscillator();
@@ -316,41 +302,48 @@ function playWinSound() {
     osc1.stop(audioCtx.currentTime + 1.5); osc2.stop(audioCtx.currentTime + 1.5);
 }
 
+// Генератор уникальных пастельных цветов (Золотое сечение)
+function getPastelColor(index) {
+    const hue = (index * 137.5) % 360; // 137.5 - математически гарантирует неповторяемость соседних оттенков
+    return `hsl(${hue}, 75%, 85%)`; // 75% насыщенность, 85% яркость = нежная пастель
+}
+
 // ==========================================
 // ЛОГИКА ВИДЖЕТА (КОЛЕСО)
 // ==========================================
 if (configParam) {
     document.getElementById('widget-container').style.display = 'flex';
     
-    let config = { d: [], c: '#8a2be2', n: true, e: false };
+    let config = { d: [], n: true, e: false };
     try { config = JSON.parse(decodeURIComponent(atob(configParam))); } catch(err){}
 
-    const color = config.c;
     const neon = config.n;
     let items = config.d;
     let isElimination = config.e;
 
-    // Применяем цвета
-    document.documentElement.style.setProperty('--widget-color', color);
+    // Неоновое свечение основной фиолетовой рамки
     if(neon) {
-        document.getElementById('wheelBorder').style.boxShadow = `0 0 4cqmin ${color}, inset 0 1vmin 2vmin rgba(0,0,0,0.3)`;
+        document.getElementById('wheelBorder').style.boxShadow = `0 0 4cqmin var(--widget-color), inset 0 1vmin 2vmin rgba(0,0,0,0.3)`;
     }
 
     const canvas = document.getElementById('wheelCanvas');
     const ctx = canvas.getContext('2d');
     let currentRotation = 0;
     let isSpinning = false;
-    let tickIntervals = [];
+    
+    // Кэш изображений (предзагрузка для Canvas)
+    const imgCache = {};
+    items.forEach(item => {
+        if (item.img && !imgCache[item.img]) {
+            const img = new Image();
+            img.crossOrigin = "Anonymous"; // Важно для обхода блокировок
+            img.onload = () => drawWheel(); // Перерисовываем колесо, как только картинка скачалась
+            img.src = item.img;
+            imgCache[item.img] = img;
+        }
+    });
 
-    // Для контрастного текста на фоне выбранного цвета
-    function getContrastColor(hex) {
-        let r = parseInt(hex.substr(1,2),16), g = parseInt(hex.substr(3,2),16), b = parseInt(hex.substr(5,2),16);
-        let yiq = ((r*299)+(g*587)+(b*114))/1000;
-        return (yiq >= 128) ? '#333' : '#fff';
-    }
-    const contrastColor = getContrastColor(color);
-
-    // Функция отрисовки колеса
+    // Отрисовка колеса
     function drawWheel() {
         ctx.clearRect(0, 0, canvas.width, canvas.height);
         const center = canvas.width / 2;
@@ -366,81 +359,54 @@ if (configParam) {
 
         const arc = Math.PI * 2 / items.length;
 
-        // Предзагрузка изображений для отрисовки (асинхронно)
-        let loadedImages = 0;
-        const imgElements = items.map(item => {
-            if(item.img) {
-                const img = new Image();
-                img.crossOrigin = "Anonymous"; // Важно для внешних ссылок
-                img.src = item.img;
-                img.onload = () => { loadedImages++; if(loadedImages === items.filter(i=>i.img).length) renderFrame(); };
-                img.onerror = () => { loadedImages++; if(loadedImages === items.filter(i=>i.img).length) renderFrame(); };
-                return img;
-            }
-            return null;
-        });
+        for (let i = 0; i < items.length; i++) {
+            const angle = i * arc;
+            ctx.beginPath();
+            // Рисуем кусок пирога (старт всегда сверху, поэтому -Math.PI/2)
+            ctx.arc(center, center, radius, angle - Math.PI / 2, angle + arc - Math.PI / 2);
+            ctx.lineTo(center, center);
+            
+            // Заливка пастельным цветом
+            ctx.fillStyle = getPastelColor(i);
+            ctx.fill();
+            
+            // Разделительные линии
+            ctx.strokeStyle = '#fff'; ctx.lineWidth = 4; ctx.stroke();
 
-        function renderFrame() {
-            ctx.clearRect(0, 0, canvas.width, canvas.height);
-            for (let i = 0; i < items.length; i++) {
-                const angle = i * arc;
-                ctx.beginPath();
-                // Начинаем рисовать сверху (-Math.PI/2)
-                ctx.arc(center, center, radius, angle - Math.PI / 2, angle + arc - Math.PI / 2);
-                ctx.lineTo(center, center);
-                
-                // Чередование цветов (Белый и Выбранный цвет)
-                let isColored = (i % 2 !== 0);
-                // Если секторов нечетное количество, последний красим в слегка другой оттенок, чтобы не сливался с первым
-                if (items.length % 2 !== 0 && i === items.length - 1) {
-                    ctx.fillStyle = color;
-                    ctx.globalAlpha = 0.8;
-                } else {
-                    ctx.fillStyle = isColored ? color : '#ffffff';
-                    ctx.globalAlpha = 1.0;
-                }
-                ctx.fill();
-                ctx.globalAlpha = 1.0;
-                
-                // Разделительные линии
-                ctx.strokeStyle = '#eee'; ctx.lineWidth = 2; ctx.stroke();
-
-                // Отрисовка контента сектора
-                ctx.save();
-                ctx.translate(center, center);
-                // Поворачиваем на середину сектора
-                ctx.rotate(angle + arc / 2 - Math.PI / 2);
-                
-                const item = items[i];
-                const textColor = isColored ? contrastColor : '#333';
-                ctx.textAlign = 'right'; ctx.textBaseline = 'middle'; ctx.fillStyle = textColor;
-                
-                let drawRadius = radius * 0.85;
-
-                // Если есть картинка
-                if (imgElements[i] && imgElements[i].complete && imgElements[i].naturalWidth > 0) {
-                    const imgSize = item.text ? 100 : 150; // Если есть текст, картинка меньше
-                    // Рисуем картинку
-                    ctx.drawImage(imgElements[i], drawRadius - imgSize + 20, -imgSize/2, imgSize, imgSize);
-                    drawRadius -= (imgSize + 10);
-                }
-
-                // Если есть текст
+            // Отрисовка контента сектора (текст и/или картинка)
+            ctx.save();
+            ctx.translate(center, center);
+            ctx.rotate(angle + arc / 2 - Math.PI / 2); // Поворачиваемся к центру сектора
+            
+            const item = items[i];
+            const img = imgCache[item.img];
+            
+            if (img && img.complete && img.naturalWidth > 0) {
                 if (item.text) {
-                    ctx.font = 'bold 32px Tahoma, sans-serif';
-                    // Обрезаем слишком длинный текст
-                    let t = item.text;
-                    if(t.length > 20) t = t.substring(0, 18) + '...';
-                    ctx.fillText(t, drawRadius, 0);
+                    // Есть и текст, и картинка
+                    const imgSize = Math.min(radius * 0.25, 80); 
+                    ctx.drawImage(img, radius * 0.85 - imgSize, -imgSize/2, imgSize, imgSize);
+                    
+                    ctx.textAlign = 'right'; ctx.textBaseline = 'middle'; ctx.fillStyle = '#333';
+                    ctx.font = 'bold 26px Tahoma, sans-serif';
+                    let t = item.text; if(t.length > 15) t = t.substring(0, 13) + '...';
+                    ctx.fillText(t, radius * 0.80 - imgSize - 10, 0);
+                } else {
+                    // Только картинка (делаем её побольше)
+                    const imgSize = Math.min(radius * 0.4, 130);
+                    ctx.drawImage(img, radius * 0.80 - imgSize/2, -imgSize/2, imgSize, imgSize);
                 }
-
-                ctx.restore();
+            } else if (item.text) {
+                // Только текст
+                ctx.textAlign = 'right'; ctx.textBaseline = 'middle'; ctx.fillStyle = '#333';
+                ctx.font = 'bold 30px Tahoma, sans-serif';
+                let t = item.text; if(t.length > 20) t = t.substring(0, 18) + '...';
+                ctx.fillText(t, radius * 0.9, 0);
             }
+            ctx.restore();
         }
-        
-        // Запускаем рендер сразу (пока грузятся картинки, будут только тексты, затем перерисуется)
-        renderFrame();
     }
+    drawWheel();
 
     // Вращение колеса
     window.spinWheel = function() {
@@ -448,38 +414,32 @@ if (configParam) {
         initAudio();
         isSpinning = true;
 
-        // Звуковая симуляция трещотки (уменьшение частоты тиков)
-        let ticks = 0;
-        let delay = 30;
+        // Звуковая симуляция трещотки
+        let ticks = 0; let delay = 30;
         function simulateTick() {
             if(!isSpinning) return;
             playTick();
-            ticks++;
-            delay += ticks * 1.5; // Замедление
+            ticks++; delay += ticks * 1.5;
             if (delay < 400) { setTimeout(simulateTick, delay); }
         }
         simulateTick();
 
-        // Математика вращения
-        const spinTime = 5; // секунды
-        const minSpins = 4;
+        // Расчет вращения
+        const spinTime = 5; // секунд
+        const minSpins = 4; // минимум оборотов
         const extraDegrees = Math.floor(Math.random() * 360);
         const totalSpin = (360 * minSpins) + extraDegrees;
         
         currentRotation += totalSpin;
         canvas.style.transform = `rotate(${currentRotation}deg)`;
 
-        // Определение победителя
+        // Определение выпавшего сектора после остановки
         setTimeout(() => {
             isSpinning = false;
             playWinSound();
             
-            // Вычисляем, какой сектор оказался под стрелкой (стрелка на 0 градусах - вверху)
-            // Колесо крутится по часовой, значит сектор уходит против часовой
             const arcDeg = 360 / items.length;
             const normalizedRotation = currentRotation % 360;
-            // Учитываем, что сектора изначально сдвинуты на -90 градусов (-Math.PI/2) для старта сверху
-            // Плюс половина сектора для правильного попадания
             let winningIndex = Math.floor((360 - normalizedRotation + (arcDeg / 2)) % 360 / arcDeg);
             if (winningIndex === items.length) winningIndex = 0;
             
@@ -506,27 +466,25 @@ if (configParam) {
         modal.classList.add('show');
     }
 
+    // Закрытие модального окна и удаление сектора (если включено выбывание)
     window.closeWinner = function() {
         document.getElementById('winnerModal').classList.remove('show');
         
         if (isElimination && items.length > 1) {
             items.splice(currentWinnerIdx, 1);
-            // Сбрасываем поворот, чтобы не было прыжков при перерисовке
+            // Сбрасываем CSS-транзицию, чтобы колесо не прокручивалось назад при перерисовке
             currentRotation = 0;
             canvas.style.transition = 'none';
             canvas.style.transform = `rotate(0deg)`;
-            // Небольшой хак для применения 'none' перед возвратом 'transition'
-            void canvas.offsetWidth; 
+            void canvas.offsetWidth; // Хак для применения стилей
             canvas.style.transition = 'transform 5s cubic-bezier(0.15, 0.85, 0.15, 1)';
             drawWheel();
         } else if (isElimination && items.length === 1) {
-             document.getElementById('winnerContent').innerHTML = "<p>Больше нет элементов!</p>";
+             document.getElementById('winnerContent').innerHTML = "<p>Больше нет секторов!</p>";
              document.getElementById('winnerModal').classList.add('show');
              document.getElementById('winnerBtn').style.display = 'none';
         }
     };
-
-    drawWheel();
 } 
 // ==========================================
 // ЛОГИКА РЕДАКТОРА
@@ -575,7 +533,6 @@ else {
     function updateCode() {
         const config = { 
             d: editorItems, 
-            c: document.getElementById('colorPicker').value, 
             n: document.getElementById('neonToggle').checked,
             e: document.getElementById('eliminationToggle').checked
         };
@@ -583,11 +540,10 @@ else {
         const url = window.location.href.split('?')[0] + '?config=' + hash;
         
         document.getElementById('previewFrame').src = url;
-        // Генерируем iframe квадратной формы (идеально для колеса)
+        // Генерируем iframe квадратной формы
         document.getElementById('codeOutput').value = `<iframe src="${url}" width="100%" height="800" style="border:none; aspect-ratio:1/1; max-width:800px; max-height:800px;" allowtransparency="true" allow="autoplay"></iframe>`;
     }
 
-    document.getElementById('colorPicker').oninput = updateCode;
     document.getElementById('neonToggle').onchange = updateCode;
     document.getElementById('eliminationToggle').onchange = updateCode;
     
