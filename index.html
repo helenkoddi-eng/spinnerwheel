@@ -315,6 +315,7 @@ if (configParam) {
 
     const neon = config.n;
     let items = config.d;
+    const originalItems = JSON.parse(JSON.stringify(config.d)); // Сохраняем исходный список
     let isElimination = config.e;
 
     // Неоновое белое свечение
@@ -473,8 +474,30 @@ if (configParam) {
         } else if (isElimination && items.length === 1) {
              document.getElementById('winnerContent').innerHTML = "<p>Больше нет секторов!</p>";
              document.getElementById('winnerModal').classList.add('show');
-             document.getElementById('winnerBtn').style.display = 'none';
+             
+             // Меняем логику кнопки на "Повторить"
+             const btn = document.getElementById('winnerBtn');
+             btn.style.display = 'block';
+             btn.innerText = "Повторить";
+             btn.onclick = window.restartWheel;
         }
+    };
+
+    // Функция сброса и перезапуска колеса
+    window.restartWheel = function() {
+        document.getElementById('winnerModal').classList.remove('show');
+        
+        items = JSON.parse(JSON.stringify(originalItems)); // Восстанавливаем оригинальные сектора
+        currentRotation = 0;
+        
+        canvas.style.transition = 'none';
+        canvas.style.transform = `rotate(0deg)`;
+        void canvas.offsetWidth; 
+        canvas.style.transition = 'transform 5s cubic-bezier(0.15, 0.85, 0.15, 1)';
+        drawWheel();
+        
+        // Возвращаем кнопке стандартное поведение на будущее
+        document.getElementById('winnerBtn').onclick = window.closeWinner;
     };
 } 
 // ==========================================
