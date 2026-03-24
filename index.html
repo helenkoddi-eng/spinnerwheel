@@ -328,7 +328,6 @@ if (configParam) {
     let currentRotation = 0;
     let isSpinning = false;
     
-    // Кэш изображений: убрали crossOrigin для обхода блокировок
     const imgCache = {};
     items.forEach(item => {
         if (item.img && !imgCache[item.img]) {
@@ -357,7 +356,9 @@ if (configParam) {
         for (let i = 0; i < items.length; i++) {
             const angle = i * arc;
             ctx.beginPath();
-            ctx.arc(center, center, radius, angle - Math.PI / 2, angle + arc - Math.PI / 2);
+            
+            // ИСПРАВЛЕНИЕ: Центрируем отрисовку сектора ровно по верхней оси
+            ctx.arc(center, center, radius, angle - Math.PI / 2 - arc / 2, angle + arc - Math.PI / 2 - arc / 2);
             ctx.lineTo(center, center);
             
             ctx.fillStyle = getPastelColor(i);
@@ -368,15 +369,15 @@ if (configParam) {
             // Отрисовка контента сектора
             ctx.save();
             ctx.translate(center, center);
-            ctx.rotate(angle + arc / 2 - Math.PI / 2); 
+            
+            // ИСПРАВЛЕНИЕ: Текст/картинка теперь строго по центру сектора
+            ctx.rotate(angle - Math.PI / 2); 
             
             const item = items[i];
             const img = imgCache[item.img];
             
-            // Если картинка загрузилась
             if (img && img.complete && img.naturalWidth > 0) {
                 if (item.text) {
-                    // Картинка + Текст рядом
                     const imgSize = 40; 
                     const imgX = radius * 0.85 - imgSize;
                     ctx.drawImage(img, imgX, -imgSize/2, imgSize, imgSize);
@@ -386,16 +387,14 @@ if (configParam) {
                     let t = item.text; if(t.length > 15) t = t.substring(0, 13) + '...';
                     ctx.fillText(t, imgX - 10, 0);
                 } else {
-                    // Только Картинка (рисуем её побольше и поворачиваем к краю)
                     const imgSize = 70;
                     ctx.save();
                     ctx.translate(radius * 0.75, 0);
-                    ctx.rotate(Math.PI / 2); // Верхом наружу
+                    ctx.rotate(Math.PI / 2); 
                     ctx.drawImage(img, -imgSize/2, -imgSize/2, imgSize, imgSize);
                     ctx.restore();
                 }
             } else if (item.text) {
-                // Только Текст
                 ctx.textAlign = 'right'; ctx.textBaseline = 'middle'; ctx.fillStyle = '#333';
                 ctx.font = 'bold 26px Tahoma, sans-serif';
                 let t = item.text; if(t.length > 20) t = t.substring(0, 18) + '...';
@@ -434,8 +433,10 @@ if (configParam) {
             
             const arcDeg = 360 / items.length;
             const normalizedRotation = currentRotation % 360;
-            let winningIndex = Math.floor((360 - normalizedRotation + (arcDeg / 2)) % 360 / arcDeg);
-            if (winningIndex === items.length) winningIndex = 0;
+            
+            // ИСПРАВЛЕНИЕ: Точный расчет индекса с учетом нового центрирования сектора
+            let winningIndex = Math.floor((360 - normalizedRotation + (arcDeg / 2)) / arcDeg) % items.length;
+            if (winningIndex < 0) winningIndex += items.length; 
             
             showWinner(winningIndex);
         }, spinTime * 1000);
@@ -475,7 +476,6 @@ if (configParam) {
              document.getElementById('winnerContent').innerHTML = "<p>Больше нет секторов!</p>";
              document.getElementById('winnerModal').classList.add('show');
              
-             // Меняем логику кнопки на "Повторить"
              const btn = document.getElementById('winnerBtn');
              btn.style.display = 'block';
              btn.innerText = "Повторить";
@@ -483,11 +483,10 @@ if (configParam) {
         }
     };
 
-    // Функция сброса и перезапуска колеса
     window.restartWheel = function() {
         document.getElementById('winnerModal').classList.remove('show');
         
-        items = JSON.parse(JSON.stringify(originalItems)); // Восстанавливаем оригинальные сектора
+        items = JSON.parse(JSON.stringify(originalItems)); 
         currentRotation = 0;
         
         canvas.style.transition = 'none';
@@ -496,7 +495,6 @@ if (configParam) {
         canvas.style.transition = 'transform 5s cubic-bezier(0.15, 0.85, 0.15, 1)';
         drawWheel();
         
-        // Возвращаем кнопке стандартное поведение на будущее
         document.getElementById('winnerBtn').onclick = window.closeWinner;
     };
 } 
